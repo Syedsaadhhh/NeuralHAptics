@@ -7,7 +7,8 @@ import { ConstraintPanel } from './components/ConstraintPanel';
 import { WebMCPAudit } from './components/WebMCPAudit';
 import { ApprovalGate } from './components/ApprovalGate';
 import { ProtocolStatus } from './components/ProtocolStatus';
-import { Brain, Sparkles, SlidersHorizontal, Activity } from 'lucide-react';
+import { TARGET_STRUCTURES } from './core/brainData';
+import { Brain, SlidersHorizontal, Activity } from 'lucide-react';
 
 export const App: React.FC = () => {
   const planState = useSyncExternalStore(
@@ -17,71 +18,65 @@ export const App: React.FC = () => {
 
   const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(true);
-  const [isDemoMode, setIsDemoMode] = useState(false);
 
   useEffect(() => {
     // Initialize WebMCP tools registration
     webMCPManager.initialize();
-
-    // Check for demo mode URL query parameter (?demo=1)
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('demo') === '1') {
-        setIsDemoMode(true);
-        // Enforce deterministic initial state for demo
-        planStore.selectCase('case_a', 'human');
-      }
-    }
   }, []);
 
+  const targetObj = TARGET_STRUCTURES[planState.targetId];
+
   return (
-    <div className="flex flex-col h-screen w-screen bg-dark-950 text-slate-100 overflow-hidden font-sans">
+    <div className="flex flex-col h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden font-sans">
       {/* Top Header Bar */}
-      <header className="h-14 border-b border-dark-800 bg-dark-900/90 backdrop-blur px-4 flex items-center justify-between z-20 flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500/20 to-cyan-500/5 border border-haptic-cyan/40 flex items-center justify-center shadow-[0_0_12px_rgba(0,229,255,0.25)]">
-              <Brain className="w-4 h-4 text-haptic-cyan" />
+      <header className="h-16 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-xl px-5 flex items-center justify-between z-20 flex-shrink-0 shadow-panel">
+        {/* Left: Product Brand */}
+        <div className="flex items-center gap-3.5">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-500/20 to-teal-500/10 border border-cyan-500/40 flex items-center justify-center shadow-glow-cyan">
+            <Brain className="w-5 h-5 text-cyan-400" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-extrabold tracking-tight text-white text-base font-sans">
+                Neural<span className="text-cyan-400">Haptics</span>
+              </span>
+              <span className="text-[10px] font-mono text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 px-2 py-0.5 rounded-full font-semibold">
+                OS
+              </span>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-bold tracking-tight text-white text-sm">NeuralHaptics</span>
-                <span className="text-[10px] font-mono text-slate-500 border border-dark-700 px-1.5 py-0.2 rounded">
-                  v1.0
-                </span>
-                {isDemoMode && (
-                  <span className="text-[10px] font-mono bg-amber-950/60 text-amber-400 border border-amber-500/40 px-1.5 py-0.2 rounded flex items-center gap-1">
-                    <Sparkles className="w-2.5 h-2.5" />
-                    DEMO-STABLE
-                  </span>
-                )}
-              </div>
-              <div className="text-[10px] text-slate-400">
-                Human-Agent Spatial Reasoning Workbench &bull; <span className="text-haptic-cyan">OpenAI WebMCP Challenge</span>
-              </div>
+            <div className="text-[11px] text-slate-400 font-medium tracking-wide">
+              Stereotactic Spatial Reasoning Platform
             </div>
           </div>
         </div>
 
-        {/* Center Tagline / Disclaimer */}
-        <div className="hidden lg:flex flex-col items-center text-center">
-          <span className="text-xs text-slate-300 font-medium tracking-wide">
-            Humans see the 3D world. Agents feel its constraints.
-          </span>
-          <span className="text-[10px] text-slate-500 font-mono">
-            Research simulation using synthetic anatomy. Not a medical device or clinical recommendation.
+        {/* Center: Active Target & Indication Badge */}
+        <div className="hidden md:flex items-center gap-2.5 glass-panel px-3.5 py-1.5 rounded-xl shadow-panel">
+          <span className="text-xs text-slate-400 font-medium">Active Target:</span>
+          <div className="flex items-center gap-1.5 text-xs text-slate-200 font-semibold">
+            <span
+              className="w-2.5 h-2.5 rounded-full shadow-glow-cyan"
+              style={{ backgroundColor: targetObj?.color || '#00F0FF' }}
+            />
+            <span>{targetObj?.displayName}</span>
+          </div>
+          <span className="text-slate-600">&bull;</span>
+          <span className="text-[11px] font-mono text-slate-400">
+            Target: [{planState.targetPoint.map((v) => v.toFixed(1)).join(', ')}] mm
           </span>
         </div>
 
-        {/* Right Status Badges & Controls */}
+        {/* Right Status Badges & Panel Toggles */}
         <div className="flex items-center gap-3">
           <ProtocolStatus />
 
-          <div className="flex items-center gap-1 border-l border-dark-800 pl-2">
+          <div className="flex items-center gap-1.5 border-l border-slate-800 pl-3">
             <button
               onClick={() => setLeftOpen(!leftOpen)}
-              className={`p-1.5 rounded transition-colors ${
-                leftOpen ? 'bg-dark-800 text-haptic-cyan border border-dark-700' : 'text-slate-500 hover:text-slate-300'
+              className={`p-2 rounded-xl border transition-all ${
+                leftOpen
+                  ? 'bg-cyan-500/15 text-cyan-300 border-cyan-500/40 shadow-glow-cyan'
+                  : 'text-slate-400 hover:text-slate-200 border-transparent hover:bg-slate-800/60'
               }`}
               title="Toggle Planning & Constraints Panel"
             >
@@ -89,8 +84,10 @@ export const App: React.FC = () => {
             </button>
             <button
               onClick={() => setRightOpen(!rightOpen)}
-              className={`p-1.5 rounded transition-colors ${
-                rightOpen ? 'bg-dark-800 text-haptic-cyan border border-dark-700' : 'text-slate-500 hover:text-slate-300'
+              className={`p-2 rounded-xl border transition-all ${
+                rightOpen
+                  ? 'bg-cyan-500/15 text-cyan-300 border-cyan-500/40 shadow-glow-cyan'
+                  : 'text-slate-400 hover:text-slate-200 border-transparent hover:bg-slate-800/60'
               }`}
               title="Toggle WebMCP Activity & Approval Gate"
             >
@@ -104,7 +101,7 @@ export const App: React.FC = () => {
       <div className="flex-1 flex overflow-hidden relative">
         {/* Left Drawer: Planning & Priority Controls */}
         {leftOpen && (
-          <aside className="w-80 md:w-88 border-r border-dark-800 bg-dark-950/95 p-3 overflow-y-auto z-10 flex-shrink-0 flex flex-col gap-3">
+          <aside className="w-84 md:w-96 border-r border-slate-800/80 bg-slate-950/90 backdrop-blur-xl p-3.5 overflow-y-auto z-10 flex-shrink-0 flex flex-col gap-3 transition-all">
             <ConstraintPanel planState={planState} />
           </aside>
         )}
@@ -114,19 +111,19 @@ export const App: React.FC = () => {
           <Viewport3D planState={planState} />
 
           {/* Floating Planning HUD */}
-          <div className="absolute top-3 left-1/2 -translate-x-1/2 w-[95%] max-w-4xl z-10">
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[94%] max-w-5xl z-10">
             <PlanningHUD planState={planState} />
           </div>
 
-          {/* Persistent Mobile / Bottom Disclaimer */}
-          <div className="absolute bottom-2 right-3 pointer-events-none text-[10px] text-slate-500 font-mono bg-dark-900/80 backdrop-blur px-2 py-0.5 rounded border border-dark-800">
-            Research simulation using synthetic anatomy. Not a medical device or clinical recommendation.
+          {/* Persistent Non-clinical Simulation Disclaimer */}
+          <div className="absolute bottom-3 right-4 pointer-events-none text-[11px] text-slate-400 glass-panel px-3 py-1 rounded-full shadow-panel">
+            Synthetic stereotactic simulation &bull; Research use only
           </div>
         </main>
 
         {/* Right Drawer: WebMCP Activity Audit & Dynamic Approval Gate */}
         {rightOpen && (
-          <aside className="w-96 md:w-[420px] border-l border-dark-800 bg-dark-950/95 p-3 overflow-y-auto z-10 flex-shrink-0 flex flex-col gap-3">
+          <aside className="w-96 md:w-[420px] border-l border-slate-800/80 bg-slate-950/90 backdrop-blur-xl p-3.5 overflow-y-auto z-10 flex-shrink-0 flex flex-col gap-3 transition-all">
             <ApprovalGate planState={planState} />
             <div className="flex-1 min-h-[350px]">
               <WebMCPAudit auditLog={planState.auditLog} currentRevision={planState.revision} />

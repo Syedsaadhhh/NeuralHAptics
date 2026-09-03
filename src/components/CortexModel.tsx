@@ -2,22 +2,21 @@ import React, { useMemo } from 'react';
 import * as THREE from 'three';
 
 /**
- * Stylized procedural translucent cerebral hemispheres with subtle sulcal curves.
- * Highly performant, 100% procedural (no external copyrighted assets).
+ * High-performance procedural translucent cerebral hemispheres with sulcal curves.
+ * 100% zero-allocation during render frames for 60+ FPS stability.
  */
 export const CortexModel: React.FC = () => {
-  // Procedural sulcal curves
-  const sulcalLines = useMemo(() => {
-    const lines: THREE.Vector3[][] = [];
+  // Pre-compute and memoize sulcal curve geometries once
+  const { sulcalLines } = useMemo(() => {
     const seedPoints = [
-      // Central sulcus approximation
+      // Central sulcus
       [
         [15, 5, 45],
         [28, 0, 52],
         [42, -5, 48],
         [50, -12, 35],
       ],
-      // Sylvian fissure approximation
+      // Sylvian fissure
       [
         [18, 15, 10],
         [32, 10, 15],
@@ -50,56 +49,65 @@ export const CortexModel: React.FC = () => {
       ],
     ];
 
-    for (const pts of seedPoints) {
+    const mat = new THREE.LineBasicMaterial({
+      color: 0x00F0FF,
+      transparent: true,
+      opacity: 0.3,
+      linewidth: 1,
+    });
+
+    const lines = seedPoints.map((pts) => {
       const v3s = pts.map((p) => new THREE.Vector3(p[0], p[1], p[2]));
       const curve = new THREE.CatmullRomCurve3(v3s);
-      lines.push(curve.getPoints(24));
-    }
+      const geo = new THREE.BufferGeometry().setFromPoints(curve.getPoints(32));
+      return new THREE.Line(geo, mat);
+    });
 
-    return lines;
+    return { sulcalLines: lines };
   }, []);
 
   return (
     <group name="CortexModel">
-      {/* Right Hemisphere Translucent Shell */}
+      {/* Right Hemisphere Translucent Anatomical Shell */}
       <mesh position={[24, 0, 25]} scale={[1.05, 1.25, 1.1]}>
-        <sphereGeometry args={[38, 32, 32]} />
+        <sphereGeometry args={[38, 48, 48]} />
         <meshStandardMaterial
-          color="#161B26"
-          roughness={0.8}
-          metalness={0.1}
+          color="#121A2D"
+          emissive="#00F0FF"
+          emissiveIntensity={0.03}
+          roughness={0.65}
+          metalness={0.2}
           transparent={true}
-          opacity={0.12}
+          opacity={0.14}
           depthWrite={false}
           side={THREE.DoubleSide}
         />
       </mesh>
 
-      {/* Left Hemisphere Translucent Shell */}
+      {/* Left Hemisphere Translucent Anatomical Shell */}
       <mesh position={[-24, 0, 25]} scale={[1.05, 1.25, 1.1]}>
-        <sphereGeometry args={[38, 32, 32]} />
+        <sphereGeometry args={[38, 48, 48]} />
         <meshStandardMaterial
-          color="#161B26"
-          roughness={0.8}
-          metalness={0.1}
+          color="#121A2D"
+          emissive="#8B5CF6"
+          emissiveIntensity={0.02}
+          roughness={0.65}
+          metalness={0.2}
           transparent={true}
-          opacity={0.06}
+          opacity={0.08}
           depthWrite={false}
           side={THREE.DoubleSide}
         />
       </mesh>
 
       {/* Procedural Sulcal Indentation Curves */}
-      {sulcalLines.map((pts, i) => {
-        const lineGeo = new THREE.BufferGeometry().setFromPoints(pts);
-        const lineMat = new THREE.LineBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.25 });
-        const lineObj = new THREE.Line(lineGeo, lineMat);
-        return <primitive key={i} object={lineObj} />;
-      })}
+      {sulcalLines.map((lineObj, i) => (
+        <primitive key={i} object={lineObj} />
+      ))}
 
-      {/* Subtle Sagittal Midplane Reference */}
+      {/* Subtle Sagittal Reference Plane */}
       <gridHelper
-        args={[100, 20, 0x242c3d, 0x161b26]}
+        args={[110, 22, 0x2A3A5B, 0x141B2D]}
         rotation={[Math.PI / 2, 0, 0]}
         position={[0, 0, 0]}
       />

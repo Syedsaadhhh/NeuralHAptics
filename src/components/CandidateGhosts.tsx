@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import * as THREE from 'three';
 import { CandidateTrajectory, Vector3Tuple } from '../core/types';
 
@@ -15,73 +15,84 @@ export const CandidateGhosts: React.FC<CandidateGhostsProps> = ({
   previousTrajectory,
   stagedCandidate,
 }) => {
-  // Show up to 3 ghost candidate lines from search
-  const visibleGhosts = candidates.slice(0, 3);
+  // Show up to 4 Pareto candidates
+  const visibleGhosts = candidates.slice(0, 4);
+
+  // Memoize previous trajectory line object
+  const prevLineObj = useMemo(() => {
+    if (!previousTrajectory) return null;
+    const p1 = new THREE.Vector3(...previousTrajectory.entryPoint);
+    const p2 = new THREE.Vector3(...previousTrajectory.targetPoint);
+    const geo = new THREE.BufferGeometry().setFromPoints([p1, p2]);
+    const mat = new THREE.LineBasicMaterial({
+      color: 0x64748B,
+      transparent: true,
+      opacity: 0.4,
+    });
+    return new THREE.Line(geo, mat);
+  }, [previousTrajectory]);
+
+  // Memoize candidate trajectory line objects
+  const candidateItems = useMemo(() => {
+    return visibleGhosts.map((c, idx) => {
+      const p1 = new THREE.Vector3(...c.entryPoint);
+      const p2 = new THREE.Vector3(...c.targetPoint);
+      const geo = new THREE.BufferGeometry().setFromPoints([p1, p2]);
+      const mat = new THREE.LineBasicMaterial({
+        color: 0x475569,
+        transparent: true,
+        opacity: 0.35 - idx * 0.06,
+      });
+      const line = new THREE.Line(geo, mat);
+      return {
+        id: c.candidateId,
+        entryPoint: c.entryPoint,
+        lineObj: line,
+      };
+    });
+  }, [visibleGhosts]);
 
   return (
     <group name="CandidateGhosts">
-      {/* 1. Previous Plan (Dashed / Dim Grey Ghost Line) */}
-      {previousTrajectory && (
-        <group>
-          {(() => {
-            const p1 = new THREE.Vector3(...previousTrajectory.entryPoint);
-            const p2 = new THREE.Vector3(...previousTrajectory.targetPoint);
-            const geo = new THREE.BufferGeometry().setFromPoints([p1, p2]);
-            const mat = new THREE.LineDashedMaterial({
-              color: 0x64748b,
-              dashSize: 2,
-              gapSize: 1.5,
-              transparent: true,
-              opacity: 0.5,
-            });
-            const line = new THREE.Line(geo, mat);
-            line.computeLineDistances();
-            return <primitive object={line} />;
-          })()}
-        </group>
-      )}
+      {/* 1. Previous Trajectory (Silver Reference Line) */}
+      {prevLineObj && <primitive object={prevLineObj} />}
 
-      {/* 2. Top Pareto Candidate Ghost Corridors */}
-      {visibleGhosts.map((candidate, idx) => {
-        const isHovered = candidate.candidateId === hoveredCandidateId;
-        const isStaged = stagedCandidate?.candidateId === candidate.candidateId;
+      {/* 2. Pareto Candidate Trajectory Streams */}
+      {candidateItems.map((item) => {
+        const isHovered = item.id === hoveredCandidateId;
+        const isStaged = stagedCandidate?.candidateId === item.id;
 
-        // Don't render ghost line for staged if it's already rendered as the active probe
         if (isStaged) return null;
 
-        const p1 = new THREE.Vector3(...candidate.entryPoint);
-        const p2 = new THREE.Vector3(...candidate.targetPoint);
-        const geo = new THREE.BufferGeometry().setFromPoints([p1, p2]);
-        const mat = new THREE.LineBasicMaterial({
-          color: isHovered ? 0x00e5ff : 0x475569,
-          transparent: true,
-          opacity: isHovered ? 0.9 : 0.35 - idx * 0.08,
-        });
-        const line = new THREE.Line(geo, mat);
-
         return (
-          <group key={candidate.candidateId}>
-            <primitive object={line} />
+          <group key={item.id}>
+            <primitive object={item.lineObj} />
 
             {/* Entry point dot */}
-            <mesh position={candidate.entryPoint}>
-              <sphereGeometry args={[isHovered ? 0.7 : 0.4, 12, 12]} />
+            <mesh position={item.entryPoint}>
+              <sphereGeometry args={[isHovered ? 0.8 : 0.45, 16, 16]} />
               <meshBasicMaterial
-                color={isHovered ? '#00E5FF' : '#64748B'}
+                color={isHovered ? '#00F0FF' : '#64748B'}
                 transparent
-                opacity={isHovered ? 0.9 : 0.4}
+                opacity={isHovered ? 0.95 : 0.45}
               />
             </mesh>
           </group>
         );
       })}
 
-      {/* 3. Visually Dominant Staged Candidate Indicator (Gold) */}
+      {/* 3. Visually Dominant Staged Candidate Collar (Vibrant Gold) */}
       {stagedCandidate && (
-        <mesh position={stagedCandidate.entryPoint}>
-          <ringGeometry args={[1.5, 2.5, 32]} />
-          <meshBasicMaterial color="#FFB300" side={THREE.DoubleSide} transparent opacity={0.85} />
-        </mesh>
+        <group position={stagedCandidate.entryPoint}>
+          <mesh>
+            <ringGeometry args={[1.4, 2.6, 32]} />
+            <meshBasicMaterial color="#FBBF24" side={THREE.DoubleSide} transparent opacity={0.9} />
+          </mesh>
+          <mesh position={[0, 0, 0.15]}>
+            <ringGeometry args={[2.8, 3.0, 32]} />
+            <meshBasicMaterial color="#FBBF24" side={THREE.DoubleSide} transparent opacity={0.4} />
+          </mesh>
+        </group>
       )}
     </group>
   );

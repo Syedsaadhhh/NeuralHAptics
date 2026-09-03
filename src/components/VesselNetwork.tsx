@@ -13,14 +13,13 @@ export const VesselNetwork: React.FC<VesselNetworkProps> = ({ nearestHazardId })
       const p1 = new THREE.Vector3(...vessel.start);
       const p2 = new THREE.Vector3(...vessel.end);
 
-      // Create a slight natural curvature between start and end
+      // Create organic curvature
       const mid = p1.clone().add(p2).multiplyScalar(0.5);
-      // Small lateral deviation for organic vessel appearance
       const normal = new THREE.Vector3(p2.y - p1.y, p1.x - p2.x, 0).normalize().multiplyScalar(1.5);
       mid.add(normal);
 
       const curve = new THREE.CatmullRomCurve3([p1, mid, p2]);
-      const geometry = new THREE.TubeGeometry(curve, 16, vessel.radiusMm, 8, false);
+      const geometry = new THREE.TubeGeometry(curve, 24, vessel.radiusMm, 12, false);
 
       return {
         id: vessel.id,
@@ -38,13 +37,13 @@ export const VesselNetwork: React.FC<VesselNetworkProps> = ({ nearestHazardId })
         return (
           <mesh key={v.id} geometry={v.geometry}>
             <meshStandardMaterial
-              color={isNearest ? '#FF2A55' : '#D32F2F'}
-              emissive={isNearest ? '#FF1744' : '#500010'}
-              emissiveIntensity={isNearest ? 0.6 : 0.2}
-              roughness={0.4}
-              metalness={0.2}
+              color={isNearest ? '#FF1744' : '#E11D48'}
+              emissive={isNearest ? '#FF0055' : '#880020'}
+              emissiveIntensity={isNearest ? 0.85 : 0.25}
+              roughness={0.25}
+              metalness={0.35}
               transparent={true}
-              opacity={0.92}
+              opacity={0.95}
             />
           </mesh>
         );

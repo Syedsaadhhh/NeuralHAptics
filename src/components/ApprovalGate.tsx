@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PlanState } from '../core/types';
 import { planStore } from '../core/planStore';
-import { ShieldCheck, Lock, Download, Copy, Check, AlertTriangle, KeyRound } from 'lucide-react';
+import { ShieldCheck, Lock, Download, Copy, Check, AlertTriangle, KeyRound, Sparkles } from 'lucide-react';
 
 interface ApprovalGateProps {
   planState: PlanState;
@@ -69,84 +69,83 @@ export const ApprovalGate: React.FC<ApprovalGateProps> = ({ planState }) => {
   };
 
   return (
-    <div className="bg-dark-900 border border-dark-700/80 rounded-lg p-3 text-xs space-y-2.5 shadow-lg">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5 font-semibold text-slate-200">
-          <KeyRound className="w-3.5 h-3.5 text-haptic-amber" />
-          <span>Dynamic Human Approval Gate</span>
+    <div className="glass-card rounded-2xl p-3.5 space-y-3 shadow-panel">
+      <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+        <div className="flex items-center gap-1.5 font-semibold text-slate-200 text-xs">
+          <KeyRound className="w-4 h-4 text-amber-400" />
+          <span>Human Verification & Sealing</span>
         </div>
-        <div className="flex items-center gap-1">
+        <div>
           {isCurrentlyApproved ? (
-            <span className="flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-950/60 text-emerald-400 border border-emerald-500/30 font-mono text-[10px]">
-              <ShieldCheck className="w-3 h-3" />
-              APPROVED REV {approval.approvedRevision}
+            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 font-mono text-xs font-semibold shadow-glow-cyan">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              SEALED REV #{approval.approvedRevision}
             </span>
           ) : (
-            <span className="flex items-center gap-1 px-2 py-0.5 rounded bg-dark-800 text-slate-400 border border-dark-700 font-mono text-[10px]">
-              <Lock className="w-3 h-3 text-slate-500" />
-              UNAPPROVED
+            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 border border-slate-700 font-mono text-xs font-semibold">
+              <Lock className="w-3.5 h-3.5 text-slate-500" />
+              UNSEALED
             </span>
           )}
         </div>
       </div>
 
-      <div className="text-[11px] text-slate-400 leading-relaxed">
-        AI agents cannot self-approve plans. Explicit human approval cryptographically seals the approved plan revision with a SHA-256 digest and dynamically unlocks the{' '}
-        <code className="text-haptic-cyan bg-dark-800 px-1 py-0.5 rounded text-[10px] font-mono">
-          neuralhaptics_export_approved_plan
-        </code>{' '}
-        WebMCP tool.
+      <div className="text-xs text-slate-400 leading-relaxed">
+        AI agents cannot self-approve plans. Explicit human approval cryptographically seals the plan revision with a SHA-256 digest and dynamically unlocks export tools.
       </div>
 
       {isCurrentlyApproved ? (
-        <div className="bg-dark-950 border border-emerald-500/30 rounded p-2 space-y-2 font-mono text-[11px]">
+        <div className="bg-slate-900/90 border border-emerald-500/40 rounded-xl p-3 space-y-2.5 shadow-sm">
           <div className="flex items-center justify-between text-slate-300">
-            <span className="text-slate-400 text-[10px]">SHA-256 Digest:</span>
+            <span className="text-slate-400 text-xs font-medium">SHA-256 Plan Fingerprint:</span>
             <button
               onClick={handleCopyDigest}
-              className="flex items-center gap-1 text-[10px] text-slate-400 hover:text-white transition-colors"
+              className="flex items-center gap-1 text-xs text-slate-300 hover:text-white transition-colors"
               title="Copy SHA-256 digest"
             >
-              {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-              {copied ? 'Copied' : 'Copy'}
+              {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copied ? 'Copied' : 'Copy'}</span>
             </button>
           </div>
           <div
-            className="text-[10px] text-emerald-400 break-all bg-dark-900/90 p-1.5 rounded border border-dark-800 select-all"
+            className="text-[11px] text-emerald-400 break-all bg-slate-950 p-2 rounded-lg border border-slate-800 select-all font-mono"
             title={approval.approvalDigest || ''}
           >
             {approval.approvalDigest}
           </div>
 
-          <div className="flex items-center justify-between pt-1 border-t border-dark-800 text-[10px]">
-            <span className="text-slate-400">Dynamic Tool Status:</span>
-            <span className="text-emerald-400 font-medium">REGISTERED & EXPORTABLE</span>
+          <div className="flex items-center justify-between pt-1 border-t border-slate-800 text-xs">
+            <span className="text-slate-400">Export Tool Status:</span>
+            <span className="text-emerald-400 font-semibold flex items-center gap-1">
+              <Sparkles className="w-3.5 h-3.5" />
+              Dynamic Tool Registered
+            </span>
           </div>
 
           <button
             onClick={handleDownloadPlan}
-            className="w-full mt-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded bg-dark-800 hover:bg-dark-750 text-slate-200 border border-dark-700 hover:border-slate-500 font-sans transition-colors"
+            className="w-full mt-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 hover:border-slate-500 font-medium text-xs transition-colors shadow-sm"
           >
-            <Download className="w-3.5 h-3.5 text-haptic-cyan" />
-            Download Approved JSON
+            <Download className="w-4 h-4 text-cyan-400" />
+            Download Sealed Plan JSON
           </button>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {approval.approvedRevision !== null && (
-            <div className="flex items-center gap-1.5 text-amber-400 bg-amber-950/30 border border-amber-500/30 p-1.5 rounded text-[10px]">
-              <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
-              <span>Prior approval invalidated by revision change ({approval.approvedRevision} &rarr; {revision}).</span>
+            <div className="flex items-center gap-2 text-amber-400 bg-amber-500/10 border border-amber-500/30 p-2 rounded-xl text-xs">
+              <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+              <span>Prior approval invalidated by revision mutation ({approval.approvedRevision} &rarr; {revision}).</span>
             </div>
           )}
 
           <button
             onClick={handleApprove}
             disabled={isApproving}
-            className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-md bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-dark-950 font-semibold text-xs shadow-md transition-all active:scale-[0.99] disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs shadow-glow-amber transition-all active:scale-[0.99] disabled:opacity-50"
           >
-            <ShieldCheck className="w-4 h-4 text-dark-950" />
-            {isApproving ? 'Computing SHA-256...' : 'Approve Research Plan'}
+            <ShieldCheck className="w-4 h-4" />
+            {isApproving ? 'Computing SHA-256 Digest...' : 'Approve & Seal Stereotactic Plan'}
           </button>
         </div>
       )}

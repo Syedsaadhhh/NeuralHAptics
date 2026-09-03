@@ -13,7 +13,7 @@ export const DBSLead: React.FC<DBSLeadProps> = ({
   targetPoint,
   activeContacts,
 }) => {
-  const { orientation, position, shaftLength, contactOffsets } = useMemo(() => {
+  const { orientation, position, shaftLength, contactOffsets, laserLine } = useMemo(() => {
     const pTarget = new THREE.Vector3(...targetPoint);
     const pEntry = new THREE.Vector3(...entryPoint);
 
@@ -21,7 +21,7 @@ export const DBSLead: React.FC<DBSLeadProps> = ({
     const len = dir.length();
     dir.normalize();
 
-    // Default cylinder geometry is aligned with Y axis (0, 1, 0)
+    // Cylinder geometry aligned with Y axis (0, 1, 0)
     const yAxis = new THREE.Vector3(0, 1, 0);
     const quat = new THREE.Quaternion().setFromUnitVectors(yAxis, dir);
 
@@ -30,29 +30,38 @@ export const DBSLead: React.FC<DBSLeadProps> = ({
       .addVectors(pTarget, pEntry)
       .multiplyScalar(0.5);
 
-    // Contact center offsets along trajectory from target
+    // 4 Electrode Contact Centers (2mm spacing)
     const offsets = [0, 1, 2, 3].map((idx) => {
       const distFromTarget = idx * 2.0;
       return pTarget.clone().add(dir.clone().multiplyScalar(distFromTarget));
     });
+
+    // Trajectory laser line
+    const lGeo = new THREE.BufferGeometry().setFromPoints([pEntry, pTarget]);
+    const lMat = new THREE.LineBasicMaterial({ color: 0x00F0FF, transparent: true, opacity: 0.4 });
+    const lLine = new THREE.Line(lGeo, lMat);
 
     return {
       orientation: quat,
       position: midPoint,
       shaftLength: len,
       contactOffsets: offsets,
+      laserLine: lLine,
     };
   }, [entryPoint, targetPoint]);
 
   return (
     <group name="DBSLead">
-      {/* Insulated Main Lead Shaft */}
+      {/* Laser Trajectory Guide */}
+      <primitive object={laserLine} />
+
+      {/* Insulated Main Lead Shaft (Polyurethane/Tefzel Coating) */}
       <mesh position={position} quaternion={orientation}>
-        <cylinderGeometry args={[0.62, 0.62, shaftLength, 16]} />
+        <cylinderGeometry args={[0.65, 0.65, shaftLength, 24]} />
         <meshStandardMaterial
-          color="#334155"
-          metalness={0.6}
-          roughness={0.4}
+          color="#384968"
+          metalness={0.7}
+          roughness={0.3}
         />
       </mesh>
 
@@ -61,23 +70,29 @@ export const DBSLead: React.FC<DBSLeadProps> = ({
         const isActive = activeContacts.includes(idx);
         return (
           <mesh key={idx} position={contactPos} quaternion={orientation}>
-            <cylinderGeometry args={[0.65, 0.65, 1.4, 20]} />
+            <cylinderGeometry args={[0.72, 0.72, 1.5, 24]} />
             <meshStandardMaterial
-              color={isActive ? '#FFB300' : '#CBD5E1'}
-              emissive={isActive ? '#FF8F00' : '#1E293B'}
-              emissiveIntensity={isActive ? 0.9 : 0.1}
-              metalness={0.85}
-              roughness={0.2}
+              color={isActive ? '#FBBF24' : '#E2E8F0'}
+              emissive={isActive ? '#F59E0B' : '#475569'}
+              emissiveIntensity={isActive ? 1.2 : 0.15}
+              metalness={0.9}
+              roughness={0.15}
             />
           </mesh>
         );
       })}
 
-      {/* Cortical Entry Ring Marker */}
-      <mesh position={entryPoint}>
-        <ringGeometry args={[1.2, 2.2, 24]} />
-        <meshBasicMaterial color="#00E5FF" side={THREE.DoubleSide} transparent opacity={0.7} />
-      </mesh>
+      {/* Cortical Burr Hole Collar Ring */}
+      <group position={entryPoint}>
+        <mesh>
+          <ringGeometry args={[1.2, 2.4, 32]} />
+          <meshBasicMaterial color="#00F0FF" side={THREE.DoubleSide} transparent opacity={0.8} />
+        </mesh>
+        <mesh position={[0, 0, 0.2]}>
+          <ringGeometry args={[2.5, 2.7, 32]} />
+          <meshBasicMaterial color="#00F0FF" side={THREE.DoubleSide} transparent opacity={0.4} />
+        </mesh>
+      </group>
     </group>
   );
 };

@@ -30,13 +30,13 @@ export const ActivationVolume: React.FC<ActivationVolumeProps> = ({
             <mesh>
               <sphereGeometry args={[radiusMm, 32, 32]} />
               <meshStandardMaterial
-                color="#FFB300"
-                emissive="#FF8F00"
-                emissiveIntensity={0.4}
-                roughness={0.3}
+                color="#FBBF24"
+                emissive="#F59E0B"
+                emissiveIntensity={0.5}
+                roughness={0.25}
                 metalness={0.1}
                 transparent={true}
-                opacity={0.32}
+                opacity={0.35}
                 depthWrite={false}
               />
             </mesh>
@@ -45,9 +45,9 @@ export const ActivationVolume: React.FC<ActivationVolumeProps> = ({
             <mesh>
               <sphereGeometry args={[radiusMm * 0.55, 24, 24]} />
               <meshBasicMaterial
-                color="#FFE082"
+                color="#FEF08A"
                 transparent={true}
-                opacity={0.25}
+                opacity={0.3}
                 depthWrite={false}
               />
             </mesh>
