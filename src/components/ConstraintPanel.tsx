@@ -1,8 +1,8 @@
 import React from 'react';
 import { PlanState } from '../core/types';
 import { planStore } from '../core/planStore';
-import { TARGET_STRUCTURES } from '../core/brainData';
-import { localHarness } from '../webmcp/localHarness';
+import { CASE_PRESETS, TARGET_STRUCTURES } from '../core/brainData';
+import { toolHandlers } from '../webmcp/registerTools';
 import { Search, Eye } from 'lucide-react';
 
 interface ConstraintPanelProps {
@@ -31,10 +31,13 @@ export const ConstraintPanel: React.FC<ConstraintPanelProps> = ({ planState }) =
   };
 
   const handleManualSearch = async () => {
-    await localHarness.searchCorridors({
-      minimumVesselClearanceMm: priorities.minimumVesselClearanceMm,
-      priorities,
-    });
+    await toolHandlers.neuralhaptics_search_corridors(
+      {
+        minimumVesselClearanceMm: priorities.minimumVesselClearanceMm,
+        priorities,
+      },
+      'human'
+    );
   };
 
   return (
@@ -46,6 +49,7 @@ export const ConstraintPanel: React.FC<ConstraintPanelProps> = ({ planState }) =
         </label>
         <div className="grid grid-cols-2 gap-1.5">
           {(['case_a', 'case_b'] as const).map((cId) => {
+            const preset = CASE_PRESETS[cId];
             const isSelected = selectedCaseId === cId;
             return (
               <button
@@ -57,9 +61,11 @@ export const ConstraintPanel: React.FC<ConstraintPanelProps> = ({ planState }) =
                     : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
                 }`}
               >
-                <div className="text-[11px]">{cId === 'case_a' ? 'Case A' : 'Case B'}</div>
+                <div className="text-[11px] font-medium text-slate-200">
+                  {cId === 'case_a' ? 'Case A' : 'Case B'}
+                </div>
                 <div className="text-[10px] text-slate-400 truncate">
-                  {cId === 'case_a' ? "Parkinson's (STN)" : 'Dystonia (GPi)'}
+                  {preset.name.split('—')[1]?.trim() || preset.name}
                 </div>
               </button>
             );
@@ -75,6 +81,7 @@ export const ConstraintPanel: React.FC<ConstraintPanelProps> = ({ planState }) =
         <div className="grid grid-cols-2 gap-1.5">
           {Object.values(TARGET_STRUCTURES).map((target) => {
             const isSelected = targetId === target.id;
+            const shortLabel = target.id === 'tremor_center' ? 'STN' : 'GPi';
             return (
               <button
                 key={target.id}
@@ -86,11 +93,11 @@ export const ConstraintPanel: React.FC<ConstraintPanelProps> = ({ planState }) =
                 }`}
               >
                 <span
-                  className="w-2 h-2 rounded-full flex-shrink-0"
+                  className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                   style={{ backgroundColor: target.color }}
                 />
                 <div className="truncate text-left">
-                  <div className="text-[11px] truncate">{target.displayName.split(' ')[0]}</div>
+                  <div className="text-[11px] font-bold text-slate-200">{shortLabel}</div>
                   <div className="text-[9px] text-slate-400 font-mono">r={target.radius}mm</div>
                 </div>
               </button>

@@ -6,6 +6,8 @@ import { trajectoryLength, distance } from '../core/geometry';
 import { TARGET_STRUCTURES } from '../core/brainData';
 import { Check, RotateCcw, ChevronDown, ChevronRight, Bot } from 'lucide-react';
 
+import { toolHandlers } from '../webmcp/registerTools';
+
 interface AgentProposalPanelProps {
   planState: PlanState;
 }
@@ -27,7 +29,7 @@ export const AgentProposalPanel: React.FC<AgentProposalPanelProps> = ({ planStat
   const [showAudit, setShowAudit] = useState(false);
   const [showDevHarness, setShowDevHarness] = useState(false);
 
-  const targetObj = TARGET_STRUCTURES[targetId] || TARGET_STRUCTURES.stn_target;
+  const targetObj = TARGET_STRUCTURES[targetId] || TARGET_STRUCTURES.tremor_center;
   const clearanceMm = machineHaptics.nearestHazard.clearanceMm;
   const targetErrorMm = distance(targetPoint, targetObj.center);
   const lengthMm = trajectoryLength(entryPoint, targetPoint);
@@ -47,7 +49,10 @@ export const AgentProposalPanel: React.FC<AgentProposalPanelProps> = ({ planStat
   const handleUndo = async () => {
     setIsUndoing(true);
     try {
-      await localHarness.undoAgentChange();
+      await toolHandlers.neuralhaptics_undo_agent_change(
+        { expectedRevision: revision },
+        'human'
+      );
     } finally {
       setIsUndoing(false);
     }

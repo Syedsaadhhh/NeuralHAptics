@@ -72,7 +72,7 @@ export const Viewport3D: React.FC<Viewport3DProps> = ({ planState }) => {
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const [activeView, setActiveView] = useState<'iso' | 'coronal' | 'sagittal' | 'axial' | 'probe'>('iso');
 
-  const targetObj = TARGET_STRUCTURES[targetId] || TARGET_STRUCTURES.stn_target;
+  const targetObj = TARGET_STRUCTURES[targetId] || TARGET_STRUCTURES.tremor_center;
   const avoidanceObj = AVOIDANCE_REGIONS[0];
 
   return (

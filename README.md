@@ -1,111 +1,118 @@
 # NeuralHaptics
 
-NeuralHaptics is a research-grade browser-native spatial reasoning prototype built for the OpenAI WebMCP Challenge, demonstrating how AI agents perceive 3D geometric constraints directly via WebMCP rather than inferring them from pixels.
+Browser-native spatial reasoning workbench showing how WebMCP gives AI agents authoritative geometric understanding of complex visual applications.
 
-## Why WebMCP Is Necessary
+**Humans see the spatial plan. Agents receive its constraints.**
 
-Conventional multimodal AI agents interact with 3D applications through screenshots, canvas DOM clicks, or ad-hoc vision-language inferences. In safety-critical spatial domains such as surgical planning or CAD engineering, this paradigm suffers from occlusion, loss of metric precision, hallucinated depth, and inability to feel geometric tension.
+## The Problem
 
-WebMCP enables the browser to expose authoritative application semantics directly to agents. Instead of guessing 3D clearance from 2D pixels, the agent interrogates the exact 3D stereotactic risk field, evaluates candidate corridors with millimeter precision, and negotiates planning trade-offs inside an authoritative shared state.
+Canvas/WebGL spatial applications are visually understandable to humans but expose little useful semantic geometry to agents.
 
-## What "Machine Haptics" Means
+An AI looking at pixels cannot reliably determine exact:
+- hazard clearance
+- trajectory geometry
+- spatial constraints
+- candidate trade-offs
 
-**Humans see the 3D world. Agents feel its constraints.**
+## What NeuralHaptics Does
 
-Machine Haptics is an interaction layer that translates continuous 3D geometric relationships into structured, machine-actionable spatial signals:
-- **Repulsion Vectors**: Unit vectors pointing along the normal from the nearest vascular hazard toward the trajectory segment.
-- **Hazard Intensity**: Continuous risk measure $[0, 1]$ that scales smoothly as clearance approaches critical safety thresholds.
-- **Constraint Tension**: A normalized scalar $[0, 1]$ indicating the degree of spatial constriction exerted by surrounding obstacles.
-- **Target Attraction**: Goal-directed vectors guiding the trajectory toward optimal deep-brain target coordinates.
+Synthetic stereotactic planning demonstration.
 
-These signals allow AI agents to navigate complex 3D corridors geometrically without needing physical simulation or heavyweight GPU backends.
+**Human sees**:
+- coronal view
+- axial view
+- sagittal view
+- target nucleus
+- hazards
+- trajectory path
 
-## Human-Agent Collaboration Model
+**Agent receives through WebMCP**:
+- exact scene state
+- vessel clearance
+- constraint tension
+- risk vectors
+- Pareto trajectory candidates
 
-1. **Shared Authoritative State**: A single client-side `planStore` governs all planning parameters. Human UI controls and WebMCP tools call the exact same functions.
-2. **Optimistic Concurrency**: Every mutating WebMCP tool requires `expectedRevision`. If human interaction modifies the plan while an agent is reasoning, the agent's stale mutation is rejected with `REVISION_CONFLICT`.
-3. **Reversible Mutations**: Staged agent corridors can be inspected, compared against previous ghost trajectories, and immediately reverted via `neuralhaptics_undo_agent_change`.
-4. **Dynamic Human Approval Gate**: Agents cannot self-approve plans. Explicit human approval cryptographically seals the approved plan revision with a SHA-256 digest and dynamically registers the `neuralhaptics_export_approved_plan` tool. Any subsequent state change immediately revokes approval and unregisters the export tool.
+## Human + Agent Workflow
 
-## Architecture
+1. Human selects case, target, and clearance constraint.
+2. Agent reads authoritative geometry through WebMCP.
+3. Agent searches 512 candidate paths.
+4. Agent compares Pareto trade-offs.
+5. Agent stages a candidate.
+6. Human accepts, modifies, or undoes.
+
+## Machine Haptics
+
+- **Nearest Hazard**: Exact segment-to-segment distance and identifier of the nearest critical obstacle.
+- **Clearance**: Authoritative minimum Euclidean clearance in millimeters (no bounding box approximations).
+- **Repulsion Vector**: Normalized 3D gradient vector pointing away from the closest hazard boundary.
+- **Constraint Tension**: Normalized scalar tension $[0.0, 1.0]$ integrating proximity and directional constriction.
+
+## Interface
+
+- **Coronal (X-Z)**: Frontal stereotactic cross-sectional view showing cortex, ventricles, target nucleus, and trajectory descent.
+- **Axial (X-Y)**: Superior-inferior slice with cranial contour, lateral ventricles, and vascular cross-sections.
+- **Sagittal (Y-Z)**: Parasagittal slice displaying target depth, internal capsule avoidance zone, and trajectory.
+- **Path Comparison**: Quantitative trade-off matrix comparing candidate trajectories against nominal baseline.
+- **3D Overview**: Demand-driven simplified Three.js volumetric overview.
+- **WebMCP Activity**: Collapsible activity audit timeline.
+
+### Component Architecture
 
 ```
 src/
+├── components/
+│   ├── SliceView.tsx            # Deterministic procedural 2.5D SVG slices (Coronal, Axial, Sagittal)
+│   ├── MultiPlanarViewer.tsx    # 2x2 multi-planar grid container
+│   ├── PathComparisonView.tsx   # Spatial trade-off matrix & Pareto candidate cards
+│   ├── AgentProposalPanel.tsx   # Focused metrics, acceptance gate, and collapsible WebMCP audit
+│   ├── ConstraintPanel.tsx      # Case selection, target picker, and clearance bias controls
+│   ├── Viewport3D.tsx           # Lightweight demand-driven 3D overview
+│   ├── CortexModel.tsx          # Translucent cerebral shell
+│   ├── VesselNetwork.tsx        # Thin vascular paths (14 segments)
+│   ├── DBSLead.tsx              # Active trajectory probe & electrode contacts
+│   ├── MachineHapticsOverlay.tsx# 3D haptic repulsion vector streamlines
+│   └── ProtocolStatus.tsx       # Live WebMCP protocol status pill
 ├── core/
-│   ├── types.ts              # Canonical stereotactic and WebMCP types
-│   ├── brainData.ts          # Synthetic STN, GPi, Internal Capsule, and 14 vessels
-│   ├── geometry.ts           # True 3D segment-to-segment clearance algorithm
-│   ├── riskField.ts          # Machine Haptics repulsion and tension engine
-│   ├── candidateSearch.ts    # Deterministic 512-point Pareto corridor search
-│   ├── stimulation.ts        # Activation proxy volume & Shannon reference
-│   ├── planStore.ts          # Authoritative reactive store with optimistic locking
-│   └── approval.ts           # Canonical JSON serialization & SHA-256 digest
-├── workers/
-│   └── trajectoryWorker.ts   # Web Worker for non-blocking multi-objective search
-├── webmcp/
-│   ├── toolSchemas.ts        # Formal WebMCP schemas
-│   ├── registerTools.ts      # Native document.modelContext registration
-│   └── localHarness.ts       # Fallback harness for browsers without WebMCP
-└── components/
-    ├── Viewport3D.tsx        # Three.js 60 FPS viewport with OrbitControls
-    ├── CortexModel.tsx       # Procedural translucent cortex with sulcal lines
-    ├── VesselNetwork.tsx     # 14 smooth red tubular vascular segments
-    ├── DBSLead.tsx           # 4-contact platinum DBS lead with active glow
-    ├── ActivationVolume.tsx  # Amber activation proxy visualization
-    ├── MachineHapticsOverlay.tsx # 3D repulsion vector arrows
-    ├── CandidateGhosts.tsx   # Visual ghost comparison trajectories
-    ├── PlanningHUD.tsx       # High-value metrics & Shannon reference status
-    ├── ConstraintPanel.tsx   # Human priority controls & manual adjustment
-    ├── WebMCPAudit.tsx       # Live audit trail of all tool executions
-    ├── ApprovalGate.tsx      # Human cryptographic approval & JSON export
-    └── ProtocolStatus.tsx    # Accurate protocol tier indicator
+│   ├── brainData.ts             # Synthetic anatomical coordinates (STN, GPi, Internal Capsule, vessels)
+│   ├── geometry.ts              # True segment-to-segment 3D Euclidean clearance engine
+│   ├── riskField.ts             # Machine Haptics risk vectors and constraint tension formulas
+│   ├── candidateSearch.ts       # 512-sample Pareto candidate generator & ranking
+│   ├── planStore.ts             # Authoritative state store with optimistic concurrency
+│   └── approval.ts              # Canonical serialization & plan digest
+└── webmcp/
+    ├── registerTools.ts         # Native WebMCP document.modelContext registration
+    ├── toolSchemas.ts           # JSON schemas for WebMCP tool signatures
+    └── localHarness.ts          # Local developer test harness
 ```
 
-## WebMCP Tools
+## WebMCP
 
-| Tool | Type | Purpose |
-|------|------|---------|
-| `neuralhaptics_get_context` | Read-only | Retrieve authoritative stereotactic state, hazards, constraints, and approval status. |
-| `neuralhaptics_search_corridors` | Read-only | Execute deterministic 512-entry Pareto corridor search. |
-| `neuralhaptics_evaluate_corridor` | Read-only | Evaluate arbitrary 3D trajectory for clearance, intersections, and tension. |
-| `neuralhaptics_compare_corridors` | Read-only | Return multi-objective comparison matrix for candidate corridors. |
-| `neuralhaptics_stage_corridor` | Mutation | Stage candidate corridor in the human's 3D viewport (requires `expectedRevision`). |
-| `neuralhaptics_preview_stimulation` | Mutation | Update stimulation parameters and compute activation proxy & coverage (requires `expectedRevision`). |
-| `neuralhaptics_undo_agent_change` | Mutation | Revert latest staged agent mutation (requires `expectedRevision`). |
-| `neuralhaptics_export_approved_plan` | Gate Tool | Export plan. **Dynamically registered only when human cryptographic approval is active.** |
+### Core Capabilities
+- `neuralhaptics_get_context`: Query authoritative 3D spatial state, nominal burr hole, target center, and active clearance.
+- `neuralhaptics_search_corridors`: Deterministically sample 512 trajectories filtered by clearance thresholds.
+- `neuralhaptics_evaluate_corridor`: Compute true segment clearances, avoidance zone margins, and constraint tensions.
+- `neuralhaptics_compare_corridors`: Rank and compare trade-offs across multiple candidates.
+- `neuralhaptics_stage_corridor`: Reversibly stage a candidate corridor with optimistic revision concurrency (`REVISION_CONFLICT`).
+- `neuralhaptics_undo_agent_change`: Roll back latest staged agent mutation to prior human baseline.
 
-## Running Locally
+> **Secondary prototype capabilities**: The codebase also registers `neuralhaptics_preview_stimulation` (VTA activation radius evaluation) and `neuralhaptics_export_approved_plan` (dynamic export authorized upon human acceptance).
 
-Prerequisites: Node.js 18+ and npm.
+## Safety / Scope
+
+Research simulation using synthetic anatomy.
+Not a medical device or clinical recommendation.
+
+## Run
 
 ```bash
-# Install dependencies
 npm install
-
-# Start development server
 npm run dev
-
-# Run automated tests
-npm run test
-
-# Production build
+npm test
 npm run build
 ```
 
-## WebMCP Testing
-
-- **Native WebMCP Browsers**: When loaded in a browser supporting `document.modelContext`, tools register automatically and the badge displays `WebMCP Active`.
-- **Local Harness**: In standard browsers, the built-in Local Development Harness provides identical tool execution under the origin `local-harness`.
-- **Deterministic Evaluation Mode**: Append `?demo=1` to the URL to initialize deterministic preset Case A with stable camera and candidate ordering.
-
-See [TESTING.md](TESTING.md) for full testing workflows and verification checklists.
-
-## Synthetic Data & Non-Clinical Disclaimer
-
-Research simulation using synthetic anatomy. Not a medical device or clinical recommendation.
-
-All anatomical structures, coordinates, vascular trajectories, and stimulation models in NeuralHaptics are procedurally generated synthetic geometries designed solely to demonstrate human-agent spatial reasoning over WebMCP.
-
 ## License
 
-MIT License. See [LICENSE](LICENSE) for details.
+MIT

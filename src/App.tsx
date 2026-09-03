@@ -22,7 +22,7 @@ export const App: React.FC = () => {
     webMCPManager.initialize();
   }, []);
 
-  const targetObj = TARGET_STRUCTURES[planState.targetId] || TARGET_STRUCTURES.stn_target;
+  const targetObj = TARGET_STRUCTURES[planState.targetId] || TARGET_STRUCTURES.tremor_center;
 
   return (
     <div className="flex flex-col h-screen w-screen bg-[#07090E] text-slate-100 overflow-hidden font-sans">

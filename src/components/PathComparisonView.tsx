@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { PlanState, CandidateTrajectory } from '../core/types';
 import { trajectoryLength, distance } from '../core/geometry';
 import { TARGET_STRUCTURES } from '../core/brainData';
-import { planStore } from '../core/planStore';
+import { evaluateMachineHaptics } from '../core/riskField';
+import { toolHandlers } from '../webmcp/registerTools';
 import { Eye } from 'lucide-react';
 
 interface PathComparisonViewProps {
@@ -25,17 +26,27 @@ export const PathComparisonView: React.FC<PathComparisonViewProps> = ({
     revision,
   } = planState;
 
-  const targetObj = TARGET_STRUCTURES[targetId] || TARGET_STRUCTURES.stn_target;
+  const targetObj = TARGET_STRUCTURES[targetId] || TARGET_STRUCTURES.tremor_center;
   const currentLength = trajectoryLength(entryPoint, targetPoint);
   const currentClearance = machineHaptics.nearestHazard.clearanceMm;
   const currentTension = machineHaptics.constraintTension;
   const currentTargetError = distance(targetPoint, targetObj.center);
 
-  // Nominal baseline calculation
+  // Authoritative nominal baseline calculation
+  const nominalHaptics = useMemo(() => {
+    return evaluateMachineHaptics(nominalEntry, targetObj.center, undefined, targetObj.id);
+  }, [nominalEntry, targetObj]);
   const nominalLength = trajectoryLength(nominalEntry, targetObj.center);
+  const nominalClearance = nominalHaptics.machineHaptics.nearestHazard.clearanceMm;
 
-  const handleStage = (c: CandidateTrajectory) => {
-    planStore.stageCandidate(c.candidateId, 'human', revision);
+  const handleStage = async (c: CandidateTrajectory) => {
+    await toolHandlers.neuralhaptics_stage_corridor(
+      {
+        candidateId: c.candidateId,
+        expectedRevision: revision,
+      },
+      'human'
+    );
   };
 
   return (
@@ -96,7 +107,7 @@ export const PathComparisonView: React.FC<PathComparisonViewProps> = ({
             <div className="space-y-1 font-mono text-[11px]">
               <div className="flex justify-between">
                 <span className="text-slate-400">Clearance:</span>
-                <span className="text-slate-400">~2.0 mm (Est)</span>
+                <span className="text-slate-300 font-mono">{nominalClearance.toFixed(1)} mm</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">Target Error:</span>

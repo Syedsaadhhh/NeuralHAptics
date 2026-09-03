@@ -22,7 +22,7 @@ export const SliceView: React.FC<SliceViewProps> = ({
   machineHaptics,
   showHaptics = true,
 }) => {
-  const targetObj = TARGET_STRUCTURES[targetId] || TARGET_STRUCTURES.stn_target;
+  const targetObj = TARGET_STRUCTURES[targetId] || TARGET_STRUCTURES.tremor_center;
   const avoidanceObj = AVOIDANCE_REGIONS[0];
 
   // Coordinate projections:
@@ -308,7 +308,7 @@ export const SliceView: React.FC<SliceViewProps> = ({
             fontFamily="monospace"
             fontWeight="bold"
           >
-            {targetObj.id === 'stn_target' ? 'STN' : 'GPI'}
+            {targetObj.id === 'tremor_center' ? 'STN' : 'GPi'}
           </text>
         </svg>
 
