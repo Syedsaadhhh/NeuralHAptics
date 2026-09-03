@@ -91,7 +91,7 @@ export const ApprovalGate: React.FC<ApprovalGateProps> = ({ planState }) => {
       </div>
 
       <div className="text-[11px] text-slate-400 leading-relaxed">
-        AI agents cannot self-approve plans. Explicit human approval signs the state with a SHA-256 digest and dynamically unlocks the{' '}
+        AI agents cannot self-approve plans. Explicit human approval cryptographically seals the approved plan revision with a SHA-256 digest and dynamically unlocks the{' '}
         <code className="text-haptic-cyan bg-dark-800 px-1 py-0.5 rounded text-[10px] font-mono">
           neuralhaptics_export_approved_plan
         </code>{' '}

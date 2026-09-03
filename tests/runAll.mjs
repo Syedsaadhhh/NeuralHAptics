@@ -1891,7 +1891,7 @@ var WebMCPManager = class _WebMCPManager {
       this.revokeExportTool();
     });
   }
-  registerStandardTools(modelContext) {
+  async registerStandardTools(modelContext) {
     const standardTools = [
       { def: TOOL_GET_CONTEXT, handler: (args) => toolHandlers.neuralhaptics_get_context(args, "webmcp") },
       { def: TOOL_SEARCH_CORRIDORS, handler: (args) => toolHandlers.neuralhaptics_search_corridors(args, "webmcp") },
@@ -1903,7 +1903,7 @@ var WebMCPManager = class _WebMCPManager {
     ];
     for (const { def, handler } of standardTools) {
       try {
-        modelContext.registerTool({
+        await modelContext.registerTool({
           name: def.name,
           description: def.description,
           parameters: def.inputSchema,
@@ -1915,14 +1915,14 @@ var WebMCPManager = class _WebMCPManager {
       }
     }
   }
-  syncApprovalGate() {
+  async syncApprovalGate() {
     const state = planStore.getState();
     const modelContext = (typeof document !== "undefined" ? document.modelContext : void 0) ?? (typeof navigator !== "undefined" ? navigator.modelContext : void 0);
     if (!modelContext || typeof modelContext.registerTool !== "function") return;
     if (state.approval.isApproved && !this.exportController) {
       this.exportController = new AbortController();
       try {
-        modelContext.registerTool(
+        await modelContext.registerTool(
           {
             name: TOOL_EXPORT_APPROVED_PLAN.name,
             description: TOOL_EXPORT_APPROVED_PLAN.description,
@@ -2050,7 +2050,6 @@ async function runAllTests() {
     assert(JSON.stringify(pts1) === JSON.stringify(pts2), "16. Candidate entry points are strictly deterministic");
     const search1 = searchCorridors({ sampleCount: 128 });
     const search2 = searchCorridors({ sampleCount: 128 });
-    console.log("    \x1B[33m[Diagnostic]\x1B[0m Evaluated:", search1.totalEvaluated, "Rejected:", search1.rejectedCount, "Found:", search1.candidates.length, "Constraints:", search1.dominantConstraints);
     assert(search1.candidates.length > 0, "17. Corridor search returns candidate trajectories");
     assert(
       JSON.stringify(search1.candidates.map((c) => c.candidateId)) === JSON.stringify(search2.candidates.map((c) => c.candidateId)),

@@ -1,6 +1,6 @@
 # NeuralHaptics
 
-NeuralHaptics is a browser-native human-agent spatial reasoning workbench built for the OpenAI WebMCP Challenge, demonstrating how AI agents perceive 3D geometric constraints directly via WebMCP rather than inferring them from pixels.
+NeuralHaptics is a research-grade browser-native spatial reasoning prototype built for the OpenAI WebMCP Challenge, demonstrating how AI agents perceive 3D geometric constraints directly via WebMCP rather than inferring them from pixels.
 
 ## Why WebMCP Is Necessary
 
@@ -25,7 +25,7 @@ These signals allow AI agents to navigate complex 3D corridors geometrically wit
 1. **Shared Authoritative State**: A single client-side `planStore` governs all planning parameters. Human UI controls and WebMCP tools call the exact same functions.
 2. **Optimistic Concurrency**: Every mutating WebMCP tool requires `expectedRevision`. If human interaction modifies the plan while an agent is reasoning, the agent's stale mutation is rejected with `REVISION_CONFLICT`.
 3. **Reversible Mutations**: Staged agent corridors can be inspected, compared against previous ghost trajectories, and immediately reverted via `neuralhaptics_undo_agent_change`.
-4. **Dynamic Human Approval Gate**: Agents cannot self-approve plans. Explicit human approval signs the plan with a SHA-256 cryptographic digest and dynamically registers the `neuralhaptics_export_approved_plan` tool. Any subsequent state change immediately revokes approval and unregisters the export tool.
+4. **Dynamic Human Approval Gate**: Agents cannot self-approve plans. Explicit human approval cryptographically seals the approved plan revision with a SHA-256 digest and dynamically registers the `neuralhaptics_export_approved_plan` tool. Any subsequent state change immediately revokes approval and unregisters the export tool.
 
 ## Architecture
 

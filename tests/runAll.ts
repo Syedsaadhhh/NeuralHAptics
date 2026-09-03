@@ -5,18 +5,17 @@
 
 import {
   distanceSegmentToSegment,
-  closestPointOnSegment,
   distancePointToSegment,
   trajectoryLength,
   distanceToSphereSurface,
   trajectorySphereClearance,
-} from '../src/core/geometry.ts';
-import { evaluateMachineHaptics } from '../src/core/riskField.ts';
-import { searchCorridors, generateCandidateEntryPoints } from '../src/core/candidateSearch.ts';
-import { planStore } from '../src/core/planStore.ts';
-import { toolHandlers } from '../src/webmcp/registerTools.ts';
-import { computePlanDigest, canonicalizePlan } from '../src/core/approval.ts';
-import { Vector3Tuple, VesselSegment, CandidateTrajectory } from '../src/core/types.ts';
+} from '../src/core/geometry';
+import { evaluateMachineHaptics } from '../src/core/riskField';
+import { searchCorridors, generateCandidateEntryPoints } from '../src/core/candidateSearch';
+import { planStore } from '../src/core/planStore';
+import { toolHandlers } from '../src/webmcp/registerTools';
+import { computePlanDigest, canonicalizePlan } from '../src/core/approval';
+import { Vector3Tuple, VesselSegment, CandidateTrajectory } from '../src/core/types';
 
 let passed = 0;
 let failed = 0;
@@ -156,7 +155,6 @@ async function runAllTests() {
     // Deterministic corridor search and Pareto ordering
     const search1 = searchCorridors({ sampleCount: 128 });
     const search2 = searchCorridors({ sampleCount: 128 });
-    console.log('    \x1b[33m[Diagnostic]\x1b[0m Evaluated:', search1.totalEvaluated, 'Rejected:', search1.rejectedCount, 'Found:', search1.candidates.length, 'Constraints:', search1.dominantConstraints);
     assert(search1.candidates.length > 0, '17. Corridor search returns candidate trajectories');
     assert(
       JSON.stringify(search1.candidates.map((c) => c.candidateId)) ===

@@ -21,7 +21,7 @@ npm run test
 6. **Revision Counter**: Strict integer incrementation on every plan state mutation.
 7. **Stale Mutation Rejection (`REVISION_CONFLICT`)**: Prevention of agent overwrites when human interacts mid-reasoning.
 8. **Reversible Agent Undo**: Restoration of prior trajectory and lead position via `neuralhaptics_undo_agent_change`.
-9. **Export Unavailable Before Approval**: Access rejection prior to cryptographic signature.
+9. **Export Unavailable Before Approval**: Access rejection prior to cryptographic SHA-256 seal.
 10. **Dynamic Export Available After Approval**: Immediate tool registration upon human approval.
 11. **Approval Revocation**: Automatic tool unregistration and digest clearing upon subsequent mutation.
 
@@ -116,7 +116,7 @@ When evaluated by an autonomous browser agent:
 ### Prompt 4: Dynamic Approval Gate
 1. Human clicks **Approve Research Plan** in the UI.
 2. `neuralhaptics_export_approved_plan` becomes available via WebMCP.
-3. Agent calls `neuralhaptics_export_approved_plan()` to retrieve the cryptographically signed research plan.
+3. Agent calls `neuralhaptics_export_approved_plan()` to retrieve the cryptographically sealed research plan.
 
 ---
 

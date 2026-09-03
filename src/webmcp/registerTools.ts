@@ -24,8 +24,8 @@ interface ModelContextTool {
 }
 
 interface ModelContextAPI {
-  registerTool: (tool: ModelContextTool, options?: { signal?: AbortSignal }) => void;
-  unregisterTool?: (toolName: string) => void;
+  registerTool: (tool: ModelContextTool, options?: { signal?: AbortSignal }) => Promise<void> | void;
+  unregisterTool?: (toolName: string) => Promise<void> | void;
 }
 
 declare global {
@@ -587,7 +587,7 @@ class WebMCPManager {
     });
   }
 
-  private registerStandardTools(modelContext: ModelContextAPI) {
+  private async registerStandardTools(modelContext: ModelContextAPI) {
     const standardTools: Array<{ def: ToolDefinition; handler: (args: any) => Promise<any> }> = [
       { def: TOOL_GET_CONTEXT, handler: (args) => toolHandlers.neuralhaptics_get_context(args, 'webmcp') },
       { def: TOOL_SEARCH_CORRIDORS, handler: (args) => toolHandlers.neuralhaptics_search_corridors(args, 'webmcp') },
@@ -600,7 +600,7 @@ class WebMCPManager {
 
     for (const { def, handler } of standardTools) {
       try {
-        modelContext.registerTool({
+        await modelContext.registerTool({
           name: def.name,
           description: def.description,
           parameters: def.inputSchema,
@@ -613,7 +613,7 @@ class WebMCPManager {
     }
   }
 
-  private syncApprovalGate() {
+  private async syncApprovalGate() {
     const state = planStore.getState();
     const modelContext =
       (typeof document !== 'undefined' ? document.modelContext : undefined) ??
@@ -625,7 +625,7 @@ class WebMCPManager {
       // Human approved: dynamically register neuralhaptics_export_approved_plan with its own AbortController
       this.exportController = new AbortController();
       try {
-        modelContext.registerTool(
+        await modelContext.registerTool(
           {
             name: TOOL_EXPORT_APPROVED_PLAN.name,
             description: TOOL_EXPORT_APPROVED_PLAN.description,
