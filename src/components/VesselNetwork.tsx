@@ -19,13 +19,15 @@ export const VesselNetwork: React.FC<VesselNetworkProps> = ({ nearestHazardId })
       mid.add(normal);
 
       const curve = new THREE.CatmullRomCurve3([p1, mid, p2]);
-      const geometry = new THREE.TubeGeometry(curve, 24, vessel.radiusMm, 12, false);
+      // Thin, low-poly vascular path (reduced by ~60%)
+      const visualRadius = Math.max(0.3, vessel.radiusMm * 0.4);
+      const geometry = new THREE.TubeGeometry(curve, 12, visualRadius, 5, false);
 
       return {
         id: vessel.id,
         displayName: vessel.displayName,
         geometry,
-        radiusMm: vessel.radiusMm,
+        radiusMm: visualRadius,
       };
     });
   }, []);

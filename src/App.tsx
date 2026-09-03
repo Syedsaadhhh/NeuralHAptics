@@ -1,14 +1,12 @@
 import React, { useEffect, useState, useSyncExternalStore } from 'react';
 import { planStore } from './core/planStore';
 import { webMCPManager } from './webmcp/registerTools';
-import { Viewport3D } from './components/Viewport3D';
-import { PlanningHUD } from './components/PlanningHUD';
+import { MultiPlanarViewer } from './components/MultiPlanarViewer';
 import { ConstraintPanel } from './components/ConstraintPanel';
-import { WebMCPAudit } from './components/WebMCPAudit';
-import { ApprovalGate } from './components/ApprovalGate';
+import { AgentProposalPanel } from './components/AgentProposalPanel';
 import { ProtocolStatus } from './components/ProtocolStatus';
 import { TARGET_STRUCTURES } from './core/brainData';
-import { Brain, SlidersHorizontal, Activity } from 'lucide-react';
+import { Brain, SlidersHorizontal, PanelRight } from 'lucide-react';
 
 export const App: React.FC = () => {
   const planState = useSyncExternalStore(
@@ -24,74 +22,69 @@ export const App: React.FC = () => {
     webMCPManager.initialize();
   }, []);
 
-  const targetObj = TARGET_STRUCTURES[planState.targetId];
+  const targetObj = TARGET_STRUCTURES[planState.targetId] || TARGET_STRUCTURES.stn_target;
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden font-sans">
-      {/* Top Header Bar */}
-      <header className="h-16 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-xl px-5 flex items-center justify-between z-20 flex-shrink-0 shadow-panel">
-        {/* Left: Product Brand */}
-        <div className="flex items-center gap-3.5">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-500/20 to-teal-500/10 border border-cyan-500/40 flex items-center justify-center shadow-glow-cyan">
-            <Brain className="w-5 h-5 text-cyan-400" />
+    <div className="flex flex-col h-screen w-screen bg-[#07090E] text-slate-100 overflow-hidden font-sans">
+      {/* Top Header Bar (~52px) */}
+      <header className="h-[52px] border-b border-slate-800 bg-[#0B0E14] px-4 flex items-center justify-between z-20 flex-shrink-0">
+        {/* Left: Product Title + Subtitle */}
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-cyan-500/15 border border-cyan-500/40 flex items-center justify-center">
+            <Brain className="w-4 h-4 text-cyan-400" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <span className="font-extrabold tracking-tight text-white text-base font-sans">
-                Neural<span className="text-cyan-400">Haptics</span>
-              </span>
-              <span className="text-[10px] font-mono text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 px-2 py-0.5 rounded-full font-semibold">
-                OS
-              </span>
+            <div className="flex items-center gap-1.5 leading-none">
+              <span className="font-bold tracking-tight text-white text-sm">NeuralHaptics</span>
             </div>
-            <div className="text-[11px] text-slate-400 font-medium tracking-wide">
-              Stereotactic Spatial Reasoning Platform
+            <div className="text-[10px] text-slate-400 font-medium tracking-wide mt-0.5">
+              Agent-readable stereotactic planning
             </div>
           </div>
         </div>
 
-        {/* Center: Active Target & Indication Badge */}
-        <div className="hidden md:flex items-center gap-2.5 glass-panel px-3.5 py-1.5 rounded-xl shadow-panel">
-          <span className="text-xs text-slate-400 font-medium">Active Target:</span>
-          <div className="flex items-center gap-1.5 text-xs text-slate-200 font-semibold">
-            <span
-              className="w-2.5 h-2.5 rounded-full shadow-glow-cyan"
-              style={{ backgroundColor: targetObj?.color || '#00F0FF' }}
-            />
-            <span>{targetObj?.displayName}</span>
-          </div>
-          <span className="text-slate-600">&bull;</span>
-          <span className="text-[11px] font-mono text-slate-400">
-            Target: [{planState.targetPoint.map((v) => v.toFixed(1)).join(', ')}] mm
+        {/* Center: Case & Target Pill */}
+        <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded bg-slate-900 border border-slate-800 text-xs">
+          <span className="font-semibold text-slate-200">
+            {planState.selectedCaseId === 'case_a' ? 'Case A' : 'Case B'}
+          </span>
+          <span className="text-slate-500">&bull;</span>
+          <span className="flex items-center gap-1 text-slate-300">
+            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: targetObj.color }} />
+            <span>{targetObj.displayName.split(' ')[0]}</span>
+          </span>
+          <span className="text-slate-500">&bull;</span>
+          <span className="text-[10px] font-mono text-slate-400">
+            [{planState.targetPoint.map((v) => v.toFixed(1)).join(', ')}]
           </span>
         </div>
 
-        {/* Right Status Badges & Panel Toggles */}
-        <div className="flex items-center gap-3">
+        {/* Right: Protocol Status & Panel Toggles */}
+        <div className="flex items-center gap-2.5">
           <ProtocolStatus />
 
-          <div className="flex items-center gap-1.5 border-l border-slate-800 pl-3">
+          <div className="flex items-center gap-1 border-l border-slate-800 pl-2">
             <button
               onClick={() => setLeftOpen(!leftOpen)}
-              className={`p-2 rounded-xl border transition-all ${
+              className={`p-1.5 rounded transition-colors ${
                 leftOpen
-                  ? 'bg-cyan-500/15 text-cyan-300 border-cyan-500/40 shadow-glow-cyan'
-                  : 'text-slate-400 hover:text-slate-200 border-transparent hover:bg-slate-800/60'
+                  ? 'bg-slate-800 text-cyan-400 border border-slate-700'
+                  : 'text-slate-500 hover:text-slate-300'
               }`}
-              title="Toggle Planning & Constraints Panel"
+              title="Toggle Planning Controls"
             >
-              <SlidersHorizontal className="w-4 h-4" />
+              <SlidersHorizontal className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() => setRightOpen(!rightOpen)}
-              className={`p-2 rounded-xl border transition-all ${
+              className={`p-1.5 rounded transition-colors ${
                 rightOpen
-                  ? 'bg-cyan-500/15 text-cyan-300 border-cyan-500/40 shadow-glow-cyan'
-                  : 'text-slate-400 hover:text-slate-200 border-transparent hover:bg-slate-800/60'
+                  ? 'bg-slate-800 text-cyan-400 border border-slate-700'
+                  : 'text-slate-500 hover:text-slate-300'
               }`}
-              title="Toggle WebMCP Activity & Approval Gate"
+              title="Toggle Agent Proposal Panel"
             >
-              <Activity className="w-4 h-4" />
+              <PanelRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
@@ -99,35 +92,22 @@ export const App: React.FC = () => {
 
       {/* Main Workspace Layout */}
       <div className="flex-1 flex overflow-hidden relative">
-        {/* Left Drawer: Planning & Priority Controls */}
+        {/* Left Sidebar (250–280px): Planning Controls */}
         {leftOpen && (
-          <aside className="w-84 md:w-96 border-r border-slate-800/80 bg-slate-950/90 backdrop-blur-xl p-3.5 overflow-y-auto z-10 flex-shrink-0 flex flex-col gap-3 transition-all">
+          <aside className="w-[260px] border-r border-slate-800 bg-[#0B0E14] p-3 overflow-y-auto z-10 flex-shrink-0">
             <ConstraintPanel planState={planState} />
           </aside>
         )}
 
-        {/* Center Hero: 3D Three.js Viewport */}
-        <main className="flex-1 relative h-full w-full">
-          <Viewport3D planState={planState} />
-
-          {/* Floating Planning HUD */}
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[94%] max-w-5xl z-10">
-            <PlanningHUD planState={planState} />
-          </div>
-
-          {/* Persistent Non-clinical Simulation Disclaimer */}
-          <div className="absolute bottom-3 right-4 pointer-events-none text-[11px] text-slate-400 glass-panel px-3 py-1 rounded-full shadow-panel">
-            Synthetic stereotactic simulation &bull; Research use only
-          </div>
+        {/* Center: 2.5D Multi-Planar 2x2 Stereotactic Workbench */}
+        <main className="flex-1 relative h-full w-full overflow-hidden bg-[#07090E]">
+          <MultiPlanarViewer planState={planState} />
         </main>
 
-        {/* Right Drawer: WebMCP Activity Audit & Dynamic Approval Gate */}
+        {/* Right Sidebar (260–290px): Agent Proposal & Collapsible Activity */}
         {rightOpen && (
-          <aside className="w-96 md:w-[420px] border-l border-slate-800/80 bg-slate-950/90 backdrop-blur-xl p-3.5 overflow-y-auto z-10 flex-shrink-0 flex flex-col gap-3 transition-all">
-            <ApprovalGate planState={planState} />
-            <div className="flex-1 min-h-[350px]">
-              <WebMCPAudit auditLog={planState.auditLog} currentRevision={planState.revision} />
-            </div>
+          <aside className="w-[280px] border-l border-slate-800 bg-[#0B0E14] p-3 overflow-y-auto z-10 flex-shrink-0">
+            <AgentProposalPanel planState={planState} />
           </aside>
         )}
       </div>

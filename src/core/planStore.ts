@@ -189,8 +189,6 @@ class PlanStore {
       durationMs: 4,
       status: 'ok',
     });
-
-    this.notify();
   }
 
   public selectTarget(targetId: string, origin: MutationOrigin = 'human') {
@@ -223,8 +221,6 @@ class PlanStore {
       durationMs: 3,
       status: 'ok',
     });
-
-    this.notify();
   }
 
   public setEntryPoint(newEntry: Vector3Tuple, origin: MutationOrigin = 'human') {
@@ -258,8 +254,6 @@ class PlanStore {
       durationMs: 3,
       status: 'ok',
     });
-
-    this.notify();
   }
 
   public setPriorities(
@@ -286,8 +280,6 @@ class PlanStore {
       durationMs: 2,
       status: 'ok',
     });
-
-    this.notify();
   }
 
   public setSearchCandidates(candidates: CandidateTrajectory[]) {
@@ -513,8 +505,6 @@ class PlanStore {
       status: 'ok',
       rawResult: { digest },
     });
-
-    this.notify();
 
     return {
       digest,

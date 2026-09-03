@@ -17,11 +17,9 @@ export const MachineHapticsOverlay: React.FC<MachineHapticsOverlayProps> = ({
   targetPoint,
   visible,
 }) => {
-  if (!visible) return null;
-
   const { nearestHazard, repulsionVector, hazardIntensity, criticalHazards } = machineHaptics;
 
-  // Compute 3D arrow positions, orientations, and lengths
+  // Compute 3D arrow positions, orientations, and lengths (unconditionally run hook)
   const arrowData = useMemo(() => {
     const arrows: Array<{
       origin: THREE.Vector3;
@@ -33,7 +31,7 @@ export const MachineHapticsOverlay: React.FC<MachineHapticsOverlayProps> = ({
 
     const yAxis = new THREE.Vector3(0, 1, 0);
 
-    // 1. Primary Nearest Hazard
+    // 1. Primary Nearest Hazard (Strongest risk vector)
     const vId = nearestHazard.id;
     const vessel = SYNTHETIC_VESSELS.find((v) => v.id === vId);
     const avoidance = AVOIDANCE_REGIONS.find((a) => a.id === vId);
@@ -53,7 +51,7 @@ export const MachineHapticsOverlay: React.FC<MachineHapticsOverlayProps> = ({
 
     const mainOrigin = new THREE.Vector3(...anchorPt);
     const mainDir = new THREE.Vector3(...repulsionVector).normalize();
-    const arrowLen = Math.max(3.5, hazardIntensity * 10.0);
+    const arrowLen = Math.max(3.0, Math.min(8.0, hazardIntensity * 8.0));
 
     if (mainDir.lengthSq() > 0.1) {
       const quat = new THREE.Quaternion().setFromUnitVectors(yAxis, mainDir);
@@ -63,12 +61,13 @@ export const MachineHapticsOverlay: React.FC<MachineHapticsOverlayProps> = ({
         quaternion: quat,
         length: arrowLen,
         color: isDangerous ? '#FF3B69' : '#00F0FF',
-        emissive: isDangerous ? '#FF0033' : '#00D4B2',
+        emissive: isDangerous ? '#FF0033' : '#00A3B4',
       });
     }
 
-    // 2. Secondary Critical Hazards
-    for (const crit of criticalHazards.slice(1, 3)) {
+    // At most 1 secondary hazard if critically close
+    if (criticalHazards.length > 1 && criticalHazards[1].intensity > 0.5) {
+      const crit = criticalHazards[1];
       const vSec = SYNTHETIC_VESSELS.find((v) => v.id === crit.id);
       if (vSec) {
         const vMid: Vector3Tuple = [
@@ -84,9 +83,9 @@ export const MachineHapticsOverlay: React.FC<MachineHapticsOverlayProps> = ({
           arrows.push({
             origin,
             quaternion: quat,
-            length: Math.max(2.5, crit.intensity * 8.0),
+            length: Math.max(2.5, Math.min(6.0, crit.intensity * 6.0)),
             color: '#8B5CF6',
-            emissive: '#7C3AED',
+            emissive: '#6D28D9',
           });
         }
       }
@@ -94,6 +93,8 @@ export const MachineHapticsOverlay: React.FC<MachineHapticsOverlayProps> = ({
 
     return arrows;
   }, [nearestHazard, repulsionVector, hazardIntensity, criticalHazards, entryPoint, targetPoint]);
+
+  if (!visible) return null;
 
   return (
     <group name="MachineHapticsOverlay">
@@ -104,28 +105,23 @@ export const MachineHapticsOverlay: React.FC<MachineHapticsOverlayProps> = ({
           <group key={idx} position={arrow.origin} quaternion={arrow.quaternion}>
             {/* Shaft */}
             <mesh position={[0, shaftLen / 2, 0]}>
-              <cylinderGeometry args={[0.2, 0.2, shaftLen, 16]} />
+              <cylinderGeometry args={[0.15, 0.15, shaftLen, 8]} />
+              <meshStandardMaterial
+                color={arrow.color}
+                emissive={arrow.emissive}
+                emissiveIntensity={0.6}
+                roughness={0.3}
+              />
+            </mesh>
+            {/* Cone Head */}
+            <mesh position={[0, shaftLen + headLen / 2, 0]}>
+              <coneGeometry args={[0.45, headLen, 8]} />
               <meshStandardMaterial
                 color={arrow.color}
                 emissive={arrow.emissive}
                 emissiveIntensity={0.8}
                 roughness={0.2}
               />
-            </mesh>
-            {/* Cone Head */}
-            <mesh position={[0, shaftLen + headLen / 2, 0]}>
-              <coneGeometry args={[0.65, headLen, 16]} />
-              <meshStandardMaterial
-                color={arrow.color}
-                emissive={arrow.emissive}
-                emissiveIntensity={1.0}
-                roughness={0.15}
-              />
-            </mesh>
-            {/* Anchor Ring */}
-            <mesh position={[0, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
-              <ringGeometry args={[0.3, 0.6, 16]} />
-              <meshBasicMaterial color={arrow.color} side={THREE.DoubleSide} transparent opacity={0.8} />
             </mesh>
           </group>
         );

@@ -55,13 +55,13 @@ export const DBSLead: React.FC<DBSLeadProps> = ({
       {/* Laser Trajectory Guide */}
       <primitive object={laserLine} />
 
-      {/* Insulated Main Lead Shaft (Polyurethane/Tefzel Coating) */}
+      {/* Insulated Main Lead Shaft */}
       <mesh position={position} quaternion={orientation}>
-        <cylinderGeometry args={[0.65, 0.65, shaftLength, 24]} />
+        <cylinderGeometry args={[0.35, 0.35, shaftLength, 12]} />
         <meshStandardMaterial
           color="#384968"
-          metalness={0.7}
-          roughness={0.3}
+          metalness={0.5}
+          roughness={0.4}
         />
       </mesh>
 
@@ -70,13 +70,13 @@ export const DBSLead: React.FC<DBSLeadProps> = ({
         const isActive = activeContacts.includes(idx);
         return (
           <mesh key={idx} position={contactPos} quaternion={orientation}>
-            <cylinderGeometry args={[0.72, 0.72, 1.5, 24]} />
+            <cylinderGeometry args={[0.42, 0.42, 1.2, 12]} />
             <meshStandardMaterial
-              color={isActive ? '#FBBF24' : '#E2E8F0'}
-              emissive={isActive ? '#F59E0B' : '#475569'}
-              emissiveIntensity={isActive ? 1.2 : 0.15}
-              metalness={0.9}
-              roughness={0.15}
+              color={isActive ? '#FBBF24' : '#94A3B8'}
+              emissive={isActive ? '#F59E0B' : '#1E293B'}
+              emissiveIntensity={isActive ? 0.9 : 0.1}
+              metalness={0.8}
+              roughness={0.2}
             />
           </mesh>
         );

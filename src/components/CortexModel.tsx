@@ -70,7 +70,7 @@ export const CortexModel: React.FC = () => {
     <group name="CortexModel">
       {/* Right Hemisphere Translucent Anatomical Shell */}
       <mesh position={[24, 0, 25]} scale={[1.05, 1.25, 1.1]}>
-        <sphereGeometry args={[38, 48, 48]} />
+        <sphereGeometry args={[38, 24, 24]} />
         <meshStandardMaterial
           color="#121A2D"
           emissive="#00F0FF"
@@ -78,7 +78,7 @@ export const CortexModel: React.FC = () => {
           roughness={0.65}
           metalness={0.2}
           transparent={true}
-          opacity={0.14}
+          opacity={0.12}
           depthWrite={false}
           side={THREE.DoubleSide}
         />
@@ -86,7 +86,7 @@ export const CortexModel: React.FC = () => {
 
       {/* Left Hemisphere Translucent Anatomical Shell */}
       <mesh position={[-24, 0, 25]} scale={[1.05, 1.25, 1.1]}>
-        <sphereGeometry args={[38, 48, 48]} />
+        <sphereGeometry args={[38, 24, 24]} />
         <meshStandardMaterial
           color="#121A2D"
           emissive="#8B5CF6"
@@ -94,7 +94,7 @@ export const CortexModel: React.FC = () => {
           roughness={0.65}
           metalness={0.2}
           transparent={true}
-          opacity={0.08}
+          opacity={0.06}
           depthWrite={false}
           side={THREE.DoubleSide}
         />
